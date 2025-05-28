@@ -1,3 +1,6 @@
+# General
+Simple encrypt/decrypt text tool with key generator.
+
 1. 
 ```
 brew install python3
