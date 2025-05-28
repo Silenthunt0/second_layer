@@ -4,6 +4,7 @@ APP = ['main.py']
 OPTIONS = {
     'argv_emulation': False,
     'includes': ['tkinter'],
+    'iconfile': 'Icon.icns',
     'packages': ['cryptography'],
     'plist': {
         'CFBundleName': 'Second Layer',

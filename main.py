@@ -84,7 +84,7 @@ pub_pem_str = public_key.public_bytes(
 ).decode()
 
 root = tk.Tk()
-root.title("Key Tool")
+root.title("Second Layer")
 
 tk.Label(root, text="Your Public Key").pack()
 pub_key_display = scrolledtext.ScrolledText(root, height=5, width=80)
