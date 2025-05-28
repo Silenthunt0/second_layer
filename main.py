@@ -4,9 +4,13 @@ from tkinter import scrolledtext, messagebox
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.backends import default_backend
+import pathlib
 
-PRIVATE_KEY_FILE = "./private_key.pem"
-PUBLIC_KEY_FILE = "./public_key.pem"
+APP_DIR = pathlib.Path(os.path.expanduser("~/Library/Application Support/SecondLayer"))
+APP_DIR.mkdir(parents=True, exist_ok=True)
+
+PRIVATE_KEY_FILE = APP_DIR / "private_key.pem"
+PUBLIC_KEY_FILE = APP_DIR / "public_key.pem"
 
 def generate_keypair():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
