@@ -65,6 +65,12 @@ def copy_encrypted_text():
     root.clipboard_clear()
     root.clipboard_append(encrypted_hex)
 
+def paste_encrypted_text():
+    try:
+        encrypted_hex = root.clipboard_get()
+        encrypted_output.delete("1.0", tk.END)
+        encrypted_output.insert(tk.END, encrypted_hex)
+
 if not os.path.exists(PRIVATE_KEY_FILE) or not os.path.exists(PUBLIC_KEY_FILE):
     generate_keypair()
 
@@ -96,6 +102,7 @@ tk.Label(root, text="Encrypted Text (Hex)").pack()
 encrypted_output = scrolledtext.ScrolledText(root, height=5, width=80)
 encrypted_output.pack()
 tk.Button(root, text="Copy encrypted", command=copy_encrypted_text).pack(side=tk.LEFT, padx=10, pady=10)
+tk.Button(root, text="Paste encrypted", command=paste_encrypted_text).pack(side=tk.LEFT, padx=10, pady=10)
 
 frame = tk.Frame(root)
 frame.pack()
