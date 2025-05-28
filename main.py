@@ -60,6 +60,11 @@ def decrypt_text():
     except Exception as e:
         messagebox.showerror("Decryption Error", str(e))
 
+def copy_encrypted_text():
+    encrypted_hex = encrypted_output.get("1.0", tk.END).strip()
+    root.clipboard_clear()
+    root.clipboard_append(encrypted_hex)
+
 if not os.path.exists(PRIVATE_KEY_FILE) or not os.path.exists(PUBLIC_KEY_FILE):
     generate_keypair()
 
@@ -86,9 +91,11 @@ tk.Label(root, text="Plaintext").pack()
 plaintext_input = scrolledtext.ScrolledText(root, height=5, width=80)
 plaintext_input.pack()
 
+
 tk.Label(root, text="Encrypted Text (Hex)").pack()
 encrypted_output = scrolledtext.ScrolledText(root, height=5, width=80)
 encrypted_output.pack()
+tk.Button(root, text="Copy encrypted", command=copy_encrypted_text).pack(side=tk.LEFT, padx=10, pady=10)
 
 frame = tk.Frame(root)
 frame.pack()

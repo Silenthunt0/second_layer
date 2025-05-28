@@ -13,7 +13,7 @@ source path/to/venv/bin/activate
 ```
 4. 
 ```
-pip install -r requirements.txt
+pip install -r requirements.md
 ```
 5. 
 ```
