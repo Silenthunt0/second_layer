@@ -3,8 +3,11 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import pathlib
+import base64
+import struct
 
 APP_DIR = pathlib.Path(os.path.expanduser("~/Library/Application Support/SecondLayer"))
 APP_DIR.mkdir(parents=True, exist_ok=True)
@@ -29,6 +32,10 @@ def generate_keypair():
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ))
 
+def pad_message(msg: bytes, block_size: int = 1024) -> bytes:
+    pad_len = block_size - (len(msg) % block_size)
+    return msg + os.urandom(pad_len)
+
 def load_keypair():
     with open(PRIVATE_KEY_FILE, "rb") as f:
         private_key = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
@@ -38,29 +45,79 @@ def load_keypair():
 
 def encrypt_text():
     try:
-        other_pub_key_pem = other_pub_key_input.get("1.0", tk.END).strip()
-        message = plaintext_input.get("1.0", tk.END).strip().encode()
+        key = os.urandom(32)
+        nonce = os.urandom(12)
 
+        message = plaintext_input.get("1.0", tk.END).strip().encode()
+        orig_len = len(message)
+        length_prefix = struct.pack(">I", orig_len)
+        padded_msg = pad_message(length_prefix + message, block_size=1024)
+        aes_cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
+        encryptor = aes_cipher.encryptor()
+        ciphertext = encryptor.update(padded_msg) + encryptor.finalize()
+        tag = encryptor.tag
+
+        version = b'\x01'
+
+        metadata_unencrypted = version + key + nonce + tag
+        other_pub_key_pem = other_pub_key_input.get("1.0", tk.END).strip()
         other_pub_key = serialization.load_pem_public_key(other_pub_key_pem.encode(), backend=default_backend())
-        encrypted = other_pub_key.encrypt(
-            message,
+
+        encrypted_key_block = other_pub_key.encrypt(
+            metadata_unencrypted,
             padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
         )
+
+        result = {
+            "key_block": base64.b64encode(encrypted_key_block).decode(),
+            "ciphertext": base64.b64encode(ciphertext).decode()
+        }
+
+        output_string = f"{result['key_block']}--{result['ciphertext']}"
         encrypted_output.delete("1.0", tk.END)
-        encrypted_output.insert(tk.END, encrypted.hex())
+        encrypted_output.insert(tk.END, output_string)
+
     except Exception as e:
         messagebox.showerror("Encryption Error", str(e))
 
+
 def decrypt_text():
     try:
-        encrypted_hex = encrypted_output.get("1.0", tk.END).strip()
-        ciphertext = bytes.fromhex(encrypted_hex)
-        decrypted = private_key.decrypt(
-            ciphertext,
-            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
+        encrypted_combined = encrypted_output.get("1.0", tk.END).strip()
+        if '--' not in encrypted_combined:
+            raise ValueError("Invalid encrypted format. Expecting '<key_block>--<ciphertext>'")
+
+        encrypted_key_b64, ciphertext_b64 = encrypted_combined.split('--', 1)
+        encrypted_key_block = base64.b64decode(encrypted_key_b64)
+        ciphertext = base64.b64decode(ciphertext_b64)
+
+        metadata_unencrypted = private_key.decrypt(
+            encrypted_key_block,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
         )
+
+        if len(metadata_unencrypted) != 1 + 32 + 12 + 16:
+            raise ValueError("Unexpected metadata size")
+
+        version = metadata_unencrypted[0:1]
+        key = metadata_unencrypted[1:33]
+        nonce = metadata_unencrypted[33:45]
+        tag = metadata_unencrypted[45:61]
+
+        aes_cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend())
+        decryptor = aes_cipher.decryptor()
+        padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+
+        orig_len = int.from_bytes(padded_plaintext[:4], byteorder='big')
+        message = padded_plaintext[4:4 + orig_len]
+
         plaintext_input.delete("1.0", tk.END)
-        plaintext_input.insert(tk.END, decrypted.decode())
+        plaintext_input.insert(tk.END, message.decode())
+
     except Exception as e:
         messagebox.showerror("Decryption Error", str(e))
 
