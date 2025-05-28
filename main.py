@@ -66,10 +66,9 @@ def copy_encrypted_text():
     root.clipboard_append(encrypted_hex)
 
 def paste_encrypted_text():
-    try:
-        encrypted_hex = root.clipboard_get()
-        encrypted_output.delete("1.0", tk.END)
-        encrypted_output.insert(tk.END, encrypted_hex)
+    encrypted_hex = root.clipboard_get()
+    encrypted_output.delete("1.0", tk.END)
+    encrypted_output.insert(tk.END, encrypted_hex)
 
 if not os.path.exists(PRIVATE_KEY_FILE) or not os.path.exists(PUBLIC_KEY_FILE):
     generate_keypair()
