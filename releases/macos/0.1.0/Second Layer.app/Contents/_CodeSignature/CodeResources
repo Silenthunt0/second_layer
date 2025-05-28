@@ -28,10 +28,10 @@
 			<key>symlink</key>
 			<string>/Volumes/ExtremePro/dev/personal/second_layer/venv/bin/python</string>
 		</dict>
-		<key>Resources/PythonApplet.icns</key>
+		<key>Resources/Icon.icns</key>
 		<dict>
 			<key>symlink</key>
-			<string>/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/Resources/PythonApplet.icns</string>
+			<string>/Volumes/ExtremePro/dev/personal/second_layer/Icon.icns</string>
 		</dict>
 		<key>Resources/__boot__.py</key>
 		<dict>
