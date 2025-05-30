@@ -7,7 +7,7 @@ run:
   uv run main.py
 
 build:
-  uv run setup.py py2app -A
+  uv run setup.py py2app
 
 format-fix:
   uv tool run black .

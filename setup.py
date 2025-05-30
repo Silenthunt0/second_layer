@@ -3,9 +3,8 @@ from setuptools import setup
 APP = ["main.py"]
 OPTIONS = {
     "argv_emulation": False,
-    "includes": ["tkinter"],
     "iconfile": "Icon.icns",
-    "packages": ["cryptography"],
+    "packages": ["cryptography", "tkinter", "cffi"],
     "plist": {
         "CFBundleName": "Second Layer",
         "CFBundleIdentifier": "space.silenthunt.secondlayer",
