@@ -8,3 +8,9 @@ run:
 
 build:
   uv run setup.py py2app -A
+
+format-fix:
+  uv tool run black .
+
+format-check:
+  uv tool run black . --check
